@@ -1,24 +1,25 @@
 # Tiny Tapeout project information
 project:
   title:        "High Density Chiplet Grid"
-  author:       "BlueWaterCrystal" # Updated based on logs
+  author:       "BlueWaterCrystal"
   discord:      ""
-  description:  ""
+  description:  "A high density grid of core, ram and l3 cache logic"
   language:     "Verilog"
   clock_hz:     50000000
 
-  tiles: "4x2"
+  # Tiles: standard is 1x1. If you didn't pay for 4x2, change this back to "1x1"
+  tiles: "1x1" 
 
-  # REQUIRED CHANGE: Must be unique and start with tt_um_
+  # Top module name
   top_module:  "tt_um_bluewatercrystal_sexy_grid"
 
-# info.yaml
-
-  source_files:
-    - "tt_um_bluewatercrystal_sexy_grid.v"
-    - "core.v"
-    - "ram32.v"
-    - "sharedl3.v"  <-- You must add these lines!
+# Source files
+# Note: These must be flush left (no spaces at start of line)
+source_files:
+  - "tt_um_bluewatercrystal_sexy_grid.v"
+  - "core.v"
+  - "ram32.v"
+  - "sharedl3.v"
 
 # The pinout of your project.
 pinout:
