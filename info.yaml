@@ -19,7 +19,7 @@ project:
     - "tt_um_bluewatercrystal_sexy_grid.v"
     - "core.v"
     - "ram32.v"
-    - "sharedl3.v"
+    - "shared_l3.v"
 
 # The pinout of your project.
 pinout:
