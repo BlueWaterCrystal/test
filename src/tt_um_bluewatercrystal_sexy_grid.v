@@ -11,14 +11,16 @@ module tt_um_bluewatercrystal_sexy_grid (
     input  wire       rst_n
 );
 
-    // Tie off unused pins
+    // 1. Fix 'ena' warning: Include 'ena' in the input seed
+    // This ensures the Enable pin is "used" by the logic.
+    wire [7:0] active_input = ui_in ^ {8{ena}};
+
     assign uio_oe  = 8'b11111111;
     assign uio_out = 8'b0;
 
-    // --- INTERCONNECT WIRES ---
-    wire [31:0] core_res [0:5];   // 6 Cores
-    wire [31:0] ram_res  [0:1];   // 2 RAM Controllers
-    wire [31:0] l3_res   [0:3];   // 4 L3 Banks
+    wire [31:0] core_res [0:5];   
+    wire [31:0] ram_res  [0:1];   
+    wire [31:0] l3_res   [0:3];   
 
     // --- INSTANTIATE 6 CORES ---
     genvar c;
@@ -27,7 +29,8 @@ module tt_um_bluewatercrystal_sexy_grid (
             core u_core (
                 .clk(clk),
                 .rst_n(rst_n),
-                .data_in({24'b0, ui_in} + c), // Unique seed per core
+                // Use active_input here
+                .data_in({24'b0, active_input} + c), 
                 .data_out(core_res[c])
             );
         end
@@ -53,23 +56,22 @@ module tt_um_bluewatercrystal_sexy_grid (
             ram32 u_ram (
                 .clk(clk),
                 .rst_n(rst_n),
-                .addr_in({24'b0, ui_in} - r),
+                // Use active_input here
+                .addr_in({24'b0, active_input} - r),
                 .data_out(ram_res[r])
             );
         end
     endgenerate
 
-    // --- THE INTERNET CONNECTION (Global XOR Bus) ---
-    // We XOR *everything* to the output. This forces the placer to run wires 
-    // from every single block to this final point, creating the web of connectivity.
-    
+    // --- GLOBAL INTERCONNECT ---
     wire [31:0] global_bus;
-    
     assign global_bus = core_res[0] ^ core_res[1] ^ core_res[2] ^ 
                         core_res[3] ^ core_res[4] ^ core_res[5] ^
                         l3_res[0]   ^ l3_res[1]   ^ l3_res[2]   ^ l3_res[3] ^
                         ram_res[0]  ^ ram_res[1];
 
-    assign uo_out = global_bus[7:0];
+    // 2. Fix 'global_bus' warning: Fold all 32 bits into the 8-bit output
+    // This forces the tool to keep the logic for ALL bits, not just the bottom 8.
+    assign uo_out = global_bus[7:0] ^ global_bus[15:8] ^ global_bus[23:16] ^ global_bus[31:24];
 
 endmodule
