@@ -1,13 +1,11 @@
 `default_nettype none
-
 module ram32 (
     input  wire        clk,
     input  wire        rst_n,
     input  wire [31:0] addr_in,
     output wire [31:0] data_out
 );
-
-    // Wide shift register to create "blocky" memory texture
+    // 32-bit wide, 16-deep shift register
     reg [31:0] mem_chain [0:15];
     integer k;
 
@@ -17,12 +15,10 @@ module ram32 (
         end else begin
             mem_chain[0] <= addr_in;
             for (k = 1; k < 16; k = k + 1) begin
-                // Rotate bits to prevent optimization
+                // Rotate to ensure no optimization
                 mem_chain[k] <= {mem_chain[k-1][30:0], mem_chain[k-1][31]};
             end
         end
     end
-
     assign data_out = mem_chain[15];
-
 endmodule
