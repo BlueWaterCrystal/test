@@ -1,12 +1,12 @@
 /*
- * tt_um_example.v (AMD Style Chiplet Edition)
- * Instantiates 4 distinct "Core Clusters" (Quadrants) to create
- * a layout with visible sections, similar to a multi-core CPU die.
+ * tt_um_bluewatercrystal_sexy_grid.v
+ * AMD Style Chiplet Edition - High Density Layout
  */
 
 `default_nettype none
 
-module tt_um_example (
+// MODULE NAME UPDATED TO MATCH INFO.YAML
+module tt_um_bluewatercrystal_sexy_grid (
     input  wire [7:0] ui_in,    // Dedicated inputs
     output wire [7:0] uo_out,   // Dedicated outputs
     input  wire [7:0] uio_in,   // IOs: Input path
@@ -23,8 +23,6 @@ module tt_um_example (
     // ==========================================
     // THE "CHIPLET" GRID (4 SECTIONS)
     // ==========================================
-    // We instantiate 4 large clusters. The layout tool will naturally 
-    // try to keep these separated, creating 4 visible "sectors" on the die.
     
     // Top-Left Cluster
     core_cluster #(.SEED_OFFSET(0)) cluster_0 (
@@ -46,7 +44,7 @@ module tt_um_example (
         .clk(clk), .rst_n(rst_n), .global_seed(ui_in), .data_out(cluster_out[3])
     );
 
-    // Output Mixing: Combine the 4 quadrants
+    // Output Mixing
     assign uo_out = cluster_out[0] ^ cluster_out[1] ^ cluster_out[2] ^ cluster_out[3];
     
     assign uio_out = 0;
@@ -59,7 +57,6 @@ endmodule
 /*
  * MODULE: Core Cluster (The "Section")
  * Contains a 4x4 grid of cores (16 total).
- * This represents one "Section" of the CPU.
  */
 module core_cluster #(parameter SEED_OFFSET = 0) (
     input wire clk,
@@ -75,14 +72,12 @@ module core_cluster #(parameter SEED_OFFSET = 0) (
             math_greeble_core u_core (
                 .clk(clk),
                 .rst_n(rst_n),
-                // Unique seed per core so they don't get optimized away
                 .seed(global_seed + SEED_OFFSET + i[7:0]), 
                 .data_out(results[i])
             );
         end
     endgenerate
 
-    // Mix results within this cluster
     integer k;
     reg [7:0] cluster_mix;
     always @(*) begin
@@ -93,13 +88,11 @@ module core_cluster #(parameter SEED_OFFSET = 0) (
     end
     
     assign data_out = cluster_mix;
-
 endmodule
 
 
 /*
  * MODULE: The Leaf Core (The "Transistors")
- * High density logic to make the GDS look detailed.
  */
 module math_greeble_core (
     input wire clk,
@@ -113,7 +106,6 @@ module math_greeble_core (
             state <= {seed, seed};
             data_out <= 0;
         end else begin
-            // Complex LFSR + Arithmetic to create a "noisy" logic texture
             state <= {state[14:0], state[15] ^ state[13] ^ seed[0]};
             data_out <= state[15:8] + state[7:0] + seed;
         end
