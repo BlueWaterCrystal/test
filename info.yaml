@@ -16,10 +16,10 @@ project:
 # Source files
 # Note: These must be flush left (no spaces at start of line)
 source_files:
-  - "tt_um_bluewatercrystal_sexy_grid.v"
-  - "core.v"
-  - "ram32.v"
-  - "sharedl3.v"
+  "tt_um_bluewatercrystal_sexy_grid.v"
+  "core.v"
+  "ram32.v"
+  "sharedl3.v"
 
 # The pinout of your project.
 pinout:
