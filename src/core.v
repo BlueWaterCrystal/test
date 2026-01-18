@@ -1,23 +1,30 @@
-module core (
-    input  wire clk,
-    input  wire rst_n,
-    output wire [7:0] dummy_out  // Connect to top-level outputs if you want visibility
-);
-    reg [31:0] counter;
-    always @(posedge clk or negedge rst_n) begin
-        if (!rst_n) counter <= 0;
-        else counter <= counter + 1;
-    end
-    assign dummy_out = counter[31:24];
+`default_nettype none
 
-    // Add repeated logic for better visual fill/stripes (50 chains of flops/adders)
-    genvar i;
-    generate
-        for (i = 0; i < 64; i = i + 1) begin : datapath
-            reg [15:0] chain;
-            always @(posedge clk) begin
-                chain <= chain + i[7:0];
+module core (
+    input  wire        clk,
+    input  wire        rst_n,
+    input  wire [31:0] data_in,
+    output wire [31:0] data_out
+);
+
+    // 20 stages of arithmetic logic to create "striped" logic texture
+    reg [31:0] pipe [0:19];
+    integer i;
+
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            for (i = 0; i < 20; i = i + 1) pipe[i] <= 32'd0;
+        end else begin
+            // Stage 0: Load
+            pipe[0] <= data_in;
+            
+            // Stages 1-19: Arithmetic Chains
+            for (i = 1; i < 20; i = i + 1) begin
+                pipe[i] <= pipe[i-1] + 32'hDEAD_BEEF + (i * 32'h1);
             end
         end
-    endgenerate
+    end
+
+    assign data_out = pipe[19];
+
 endmodule
