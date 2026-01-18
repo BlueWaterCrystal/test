@@ -6,68 +6,70 @@ module tt_um_bluewatercrystal_sexy_grid (
     input  wire [7:0] uio_in,
     output wire [7:0] uio_out,
     output wire [7:0] uio_oe,
-    input  wire ena,
-    input  wire clk,
-    input  wire rst_n
+    input  wire       ena,
+    input  wire       clk,
+    input  wire       rst_n
 );
 
-    // Demo output
-    assign uo_out = ui_in ^ {ena, clk, rst_n, 5'b0};
+    // Tie off unused pins
+    assign uio_oe  = 8'b11111111;
     assign uio_out = 8'b0;
-    assign uio_oe  = 8'b0;
 
-    // 6 Cores: striped datapaths (moderate density for clear stripes + separation)
-    genvar c, i;
+    // --- INTERCONNECT WIRES ---
+    wire [31:0] core_res [0:5];   // 6 Cores
+    wire [31:0] ram_res  [0:1];   // 2 RAM Controllers
+    wire [31:0] l3_res   [0:3];   // 4 L3 Banks
+
+    // --- INSTANTIATE 6 CORES ---
+    genvar c;
     generate
-        for (c = 0; c < 6; c = c + 1) begin : core_block
-            for (i = 0; i < 80; i = i + 1) begin : datapath
-                reg [31:0] chain;
-                always @(posedge clk or negedge rst_n) begin
-                    if (!rst_n) chain <= {ui_in, 24'(c*80 + i)};
-                    else chain <= chain + 32'(i);
-                end
-            end
+        for (c = 0; c < 6; c = c + 1) begin : gen_cores
+            core u_core (
+                .clk(clk),
+                .rst_n(rst_n),
+                .data_in({24'b0, ui_in} + c), // Unique seed per core
+                .data_out(core_res[c])
+            );
         end
     endgenerate
 
-    // Huge Central Shared L3: ultra-dense grid (60x60 = 3600 regs → massive packed block)
-    genvar x, y;
+    // --- INSTANTIATE 4 L3 BANKS ---
+    genvar l;
     generate
-        for (x = 0; x < 60; x = x + 1) begin : l3_row
-            for (y = 0; y < 60; y = y + 1) begin : l3_cell
-                reg [15:0] l3_reg;  // Renamed to avoid conflict with generate label 'l3_cell'
-                always @(posedge clk or negedge rst_n) begin
-                    if (!rst_n) l3_reg <= {x[5:0], y[5:0], 4'b0};
-                    else l3_reg <= l3_reg + 16'(x ^ y);
-                end
-            end
+        for (l = 0; l < 4; l = l + 1) begin : gen_l3
+            sharedl3 u_l3 (
+                .clk(clk),
+                .rst_n(rst_n),
+                .bus_in({24'b0, uio_in} ^ l),
+                .cache_out(l3_res[l])
+            );
         end
     endgenerate
 
-    // Memory Controller: wide horizontal chains (long rows for bottom bar texture)
-    genvar m;
+    // --- INSTANTIATE 2 RAM CONTROLLERS ---
+    genvar r;
     generate
-        for (m = 0; m < 120; m = m + 1) begin : mem_ctrl
-            reg [63:0] wide_chain;
-            always @(posedge clk or negedge rst_n) begin
-                if (!rst_n) wide_chain <= 64'(m * {8{ui_in[0]}});
-                else wide_chain <= {wide_chain[62:0], wide_chain[63]};  // rotate left
-            end
+        for (r = 0; r < 2; r = r + 1) begin : gen_ram
+            ram32 u_ram (
+                .clk(clk),
+                .rst_n(rst_n),
+                .addr_in({24'b0, ui_in} - r),
+                .data_out(ram_res[r])
+            );
         end
     endgenerate
 
-    // Uncore/I/O: mixed dense filler (top varied texture)
-    genvar u;
-    generate
-        for (u = 0; u < 80; u = u + 1) begin : uncore
-            reg [31:0] mix_reg;
-            always @(posedge clk or negedge rst_n) begin
-                if (!rst_n) mix_reg <= {ui_in, ui_in, 16'(u)};
-                else mix_reg <= mix_reg ^ 32'(u + clk);
-            end
-        end
-    endgenerate
+    // --- THE INTERNET CONNECTION (Global XOR Bus) ---
+    // We XOR *everything* to the output. This forces the placer to run wires 
+    // from every single block to this final point, creating the web of connectivity.
+    
+    wire [31:0] global_bus;
+    
+    assign global_bus = core_res[0] ^ core_res[1] ^ core_res[2] ^ 
+                        core_res[3] ^ core_res[4] ^ core_res[5] ^
+                        l3_res[0]   ^ l3_res[1]   ^ l3_res[2]   ^ l3_res[3] ^
+                        ram_res[0]  ^ ram_res[1];
+
+    assign uo_out = global_bus[7:0];
 
 endmodule
-
-`default_nettype wire
