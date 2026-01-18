@@ -35,10 +35,10 @@ module tt_um_bluewatercrystal_sexy_grid (
     generate
         for (x = 0; x < 60; x = x + 1) begin : l3_row
             for (y = 0; y < 60; y = y + 1) begin : l3_cell
-                reg [15:0] cell;
+                reg [15:0] l3_reg;  // Renamed to avoid conflict with generate label 'l3_cell'
                 always @(posedge clk or negedge rst_n) begin
-                    if (!rst_n) cell <= {x[5:0], y[5:0], 4'b0};
-                    else cell <= cell + 16'(x ^ y);
+                    if (!rst_n) l3_reg <= {x[5:0], y[5:0], 4'b0};
+                    else l3_reg <= l3_reg + 16'(x ^ y);
                 end
             end
         end
