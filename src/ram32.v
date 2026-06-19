@@ -15,7 +15,6 @@ module ram32 (
         end else begin
             mem_chain[0] <= addr_in;
             for (k = 1; k < 16; k = k + 1) begin
-                // Rotate to ensure no optimization
                 mem_chain[k] <= {mem_chain[k-1][30:0], mem_chain[k-1][31]};
             end
         end
