@@ -1,32 +1,39 @@
 {
   "DESIGN_NAME": "tt_um_bluewatercrystal_sexy_grid",
   "VERILOG_FILES": [
-    "src/tt_um_bluewatercrystal_sexy_grid.v",
-    "src/core.v",
-    "src/ram32.v",
-    "src/sharedl3.v"
+    "dir::src/tt_um_bluewatercrystal_sexy_grid.v"
   ],
+  "VERILOG_FILES_BLACKBOX": [
+    "dir::src/core.v",
+    "dir::src/ram32.v",
+    "dir::src/shared_l3.v"
+  ],
+  "EXTRA_LEFS": [
+    "dir::macros/lef/core.lef",
+    "dir::macros/lef/ram32.lef",
+    "dir::macros/lef/shared_l3.lef"
+  ],
+  "EXTRA_GDS_FILES": [
+    "dir::macros/gds/core.gds",
+    "dir::macros/gds/ram32.gds",
+    "dir::macros/gds/shared_l3.gds"
+  ],
+  "MACRO_PLACEMENT_CFG": "dir::src/macro_placement.cfg",
+  
   "CLOCK_PORT": "clk",
   "CLOCK_PERIOD": 20,
-
   "PL_TARGET_DENSITY_PCT": 55,
   "FP_CORE_UTIL": 45,
-
   "FP_SIZING": "absolute",
   "DIE_AREA": "0 0 854.4 313.74",
-
   "PL_RESIZER_HOLD_SLACK_MARGIN": 0.05,
   "GRT_RESIZER_HOLD_SLACK_MARGIN": 0.05,
-  
   "RUN_LINTER": 1,
   "LINTER_INCLUDE_PDK_MODELS": 1,
-  
   "RUN_KLAYOUT_XOR": 0,
   "RUN_KLAYOUT_DRC": 0,
-  
   "DESIGN_REPAIR_BUFFER_OUTPUT_PORTS": 0,
   "GRT_ALLOW_CONGESTION": 1,
-  
   "IO_PIN_H_LENGTH": 2,
   "IO_PIN_V_LENGTH": 2,
   "PDN_VPITCH": 38.87,
@@ -34,6 +41,5 @@
   "PDN_MULTILAYER": 0,
   "MAGIC_DEF_LABELS": 0,
   "MAGIC_WRITE_LEF_PINONLY": 1,
-
   "GRT_REPAIR_ANTENNAS": 1
 }
