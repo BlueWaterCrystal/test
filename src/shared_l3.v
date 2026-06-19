@@ -1,5 +1,5 @@
 `default_nettype none
-module sharedl3 (
+module shared_l3 (
     input  wire        clk,
     input  wire        rst_n,
     input  wire [31:0] bus_in,
@@ -14,7 +14,6 @@ module sharedl3 (
         if (!rst_n) begin
             cell_a <= 0; cell_b <= 0; cell_c <= 0; cell_d <= 0;
         end else begin
-            // 4-stage feedback mess = High Density Logic
             cell_a <= bus_in ^ cell_b;
             cell_b <= cell_a + cell_c;
             cell_c <= cell_b ^ cell_d;
