@@ -15,7 +15,6 @@ module core (
         end else begin
             pipe[0] <= data_in;
             for (i = 1; i < 16; i = i + 1) begin
-                // The mixing of (+) and (^) forces complex logic gates
                 pipe[i] <= (pipe[i-1] + 32'hDEAD_BEEF) ^ (i * 32'h1);
             end
         end
